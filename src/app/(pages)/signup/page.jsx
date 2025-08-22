@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Layout } from "@/components/layout/Layout";
+import Layout from "@/components/layout/Layout";
 import { Logo } from "@/components/ui/Logo";
 import { Card } from "@/components/ui/Card";
 import { HexagonTile } from "@/components/ui/HexagonTile";
