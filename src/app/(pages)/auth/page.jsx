@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import Layout from "../components/layout/Layout";
-import { Logo } from "../components/ui/Logo";
-import { Button } from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
-import { HexagonTile } from "../components/ui/HexagonTile";
+import Layout from "@/components/layout/Layout";
+import { Logo } from "@/components/ui/Logo";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { HexagonTile } from "@/components/ui/HexagonTile";
 
 export const AuthPage = ({ mode }) => {
   const router = useRouter();
