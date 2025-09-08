@@ -2,9 +2,7 @@
 import React from "react";
 
 export const HexagonTile = ({
-  front,
-  back,
-  flipped = false,
+  children,
   onClick,
   size = "md",
   color = "#2DD4BF",
@@ -26,38 +24,15 @@ export const HexagonTile = ({
     backgroundColor: color,
   };
 
-  const handleClick = () => {
-    if (!disabled && onClick) onClick();
-  };
-
   return (
     <div
-      className="relative m-1"
-      style={{ perspective: "600px" }}
-      onClick={handleClick}
+      className={`flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 ${
+        disabled ? "opacity-70 cursor-default" : "cursor-pointer"
+      }`}
+      style={baseStyle}
+      onClick={!disabled ? onClick : undefined}
     >
-      <div
-        className={`relative w-full h-full transition-transform duration-500 transform ${
-          flipped ? "rotate-y-180" : ""
-        } ${disabled ? "opacity-70 cursor-default" : "cursor-pointer"}`}
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        {/* Front */}
-        <div
-          className="absolute inset-0 flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 backface-hidden"
-          style={baseStyle}
-        >
-          {front}
-        </div>
-
-        {/* Back */}
-        <div
-          className="absolute inset-0 flex items-center justify-center shadow-md backface-hidden rotate-y-180"
-          style={baseStyle}
-        >
-          {back}
-        </div>
-      </div>
+      {children}
     </div>
   );
 };

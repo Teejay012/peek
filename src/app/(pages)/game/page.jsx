@@ -6,139 +6,157 @@ import { Card } from "@/components/ui/Card";
 import { EyeIcon, ClockIcon, LightbulbIcon, PauseIcon } from "lucide-react";
 
 export default function GamePage() {
-  const [gamePhase, setGamePhase] = useState("countdown"); // "countdown" | "memorize" | "recall"
+  const [phase, setPhase] = useState("countdown"); // countdown | memorize | recall | end
   const [countdown, setCountdown] = useState(3);
+  const [memorizeTime, setMemorizeTime] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(60);
   const [score, setScore] = useState(0);
-  const [time, setTime] = useState(60);
 
-  // Sample game grid data
-  const gridSize = 4;
-  const tiles = Array.from({ length: gridSize * gridSize }, (_, i) => ({
-    id: i,
-    number: Math.floor(Math.random() * 9) + 1,
-    letter: String.fromCharCode(65 + Math.floor(Math.random() * 26)),
-    flipped: false,
-  }));
+  // 🎲 Generate grid (honeycomb pattern [2,3,4,3,2])
+  const pattern = [2, 3, 4, 3, 2];
+  const totalTiles = pattern.reduce((a, b) => a + b, 0);
 
-  const [gameGrid, setGameGrid] = useState(tiles);
+  const createTiles = () =>
+    Array.from({ length: totalTiles }, (_, i) => ({
+      id: i,
+      number: Math.floor(Math.random() * 9) + 1,
+      letter: String.fromCharCode(65 + Math.floor(Math.random() * 26)),
+      flipped: false,
+    }));
 
-  // Handle countdown and phase changes
+  const [tiles, setTiles] = useState(createTiles);
+
+  // 🕒 Handle phase transitions
   useEffect(() => {
     let timer;
 
-    if (gamePhase === "countdown" && countdown > 0) {
+    if (phase === "countdown" && countdown > 0) {
       timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    } else if (gamePhase === "countdown" && countdown === 0) {
-      setGamePhase("memorize");
-      setCountdown(5);
-    } else if (gamePhase === "memorize" && countdown > 0) {
-      timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    } else if (gamePhase === "memorize" && countdown === 0) {
-      setGamePhase("recall");
-    } else if (gamePhase === "recall") {
+    } else if (phase === "countdown" && countdown === 0) {
+      setPhase("memorize");
+    }
+
+    if (phase === "memorize" && memorizeTime > 0) {
+      timer = setTimeout(() => setMemorizeTime((t) => t - 1), 1000);
+    } else if (phase === "memorize" && memorizeTime === 0) {
+      setPhase("recall");
+    }
+
+    if (phase === "recall") {
       timer = setInterval(() => {
-        setTime((prevTime) => {
-          if (prevTime <= 1) {
+        setTimeLeft((t) => {
+          if (t <= 1) {
             clearInterval(timer);
+            setPhase("end");
             return 0;
           }
-          return prevTime - 1;
+          return t - 1;
         });
       }, 1000);
     }
 
-    return () => {
-      clearTimeout(timer);
-      clearInterval(timer);
-    };
-  }, [gamePhase, countdown]);
+    return () => clearTimeout(timer);
+  }, [phase, countdown, memorizeTime]);
 
-  // Handle tile click during recall phase
+  // 🎯 Handle tile click
   const handleTileClick = (id) => {
-    if (gamePhase !== "recall") return;
+    if (phase !== "recall") return;
 
-    setGameGrid((prev) =>
-      prev.map((tile) =>
-        tile.id === id ? { ...tile, flipped: !tile.flipped } : tile
+    setTiles((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, flipped: !t.flipped } : t
       )
     );
 
-    // Example scoring logic
     setScore((s) => s + 10);
   };
 
-  // Render content based on game phase
+  // 🔍 Render tile content
   const renderTileContent = (tile) => {
-    if (gamePhase === "countdown") {
-      return null;
-    } else if (gamePhase === "memorize") {
-      return (
-        <span className="text-white font-bold text-xl">{tile.number}</span>
-      );
-    } else {
+    if (phase === "memorize") {
+      return <span className="text-white font-bold text-lg">{tile.number}</span>;
+    }
+    if (phase === "recall") {
       return tile.flipped ? (
-        <span className="text-white font-bold text-xl">{tile.number}</span>
+        <span className="text-white font-bold text-lg">{tile.number}</span>
       ) : (
-        <span className="text-white font-bold text-xl">{tile.letter}</span>
+        <span className="text-white font-bold text-lg">{tile.letter}</span>
       );
     }
+    return null;
   };
 
   return (
     <Layout>
-      <div className="pb-24">
-        {/* Game header */}
+      <div className="pb-24 relative">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="bg-purple-100 text-purple-700 py-1 px-4 rounded-full font-medium">
             Score: {score}
           </div>
           <div className="bg-orange-100 text-orange-700 py-1 px-4 rounded-full font-medium flex items-center">
             <ClockIcon size={16} className="mr-1" />
-            {time}s
+            {timeLeft}s
           </div>
         </div>
 
-        {/* Countdown overlay */}
-        {gamePhase === "countdown" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
-            <div className="text-white text-6xl font-bold animate-pulse">
+        {/* Overlay for countdown */}
+        {phase === "countdown" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 z-20">
+            <span className="text-white text-6xl font-bold animate-pulse">
               {countdown}
-            </div>
+            </span>
           </div>
         )}
 
-        {/* Game instruction */}
+        {/* Instructions */}
         <div className="mb-6 text-center">
-          {gamePhase === "memorize" && (
-            <div className="text-lg font-medium">
-              Memorize the numbers! ({countdown}s)
-            </div>
+          {phase === "memorize" && (
+            <p className="text-lg font-medium">
+              Memorize the numbers! ({memorizeTime}s)
+            </p>
           )}
-          {gamePhase === "recall" && (
-            <div className="text-lg font-medium">
+          {phase === "recall" && (
+            <p className="text-lg font-medium">
               Find the tile with number{" "}
               <span className="text-teal-500 font-bold">3</span>
-            </div>
+            </p>
+          )}
+          {phase === "end" && (
+            <p className="text-lg font-bold text-red-500">Game Over!</p>
           )}
         </div>
 
-        {/* Hexagon grid */}
-        <div className="flex justify-center mb-8">
-          <div className="grid grid-cols-4 gap-1">
-            {gameGrid.map((tile) => (
-              <HexagonTile
-                key={tile.id}
-                content={renderTileContent(tile)}
-                flipped={tile.flipped}
-                onClick={() => handleTileClick(tile.id)}
-                color={tile.id % 2 === 0 ? "#2DD4BF" : "#A78BFA"}
-              />
-            ))}
-          </div>
+        {/* Honeycomb grid */}
+        <div className="flex flex-col items-center gap-y-1">
+          {pattern.reduce((rows, count, rowIndex) => {
+            const start = rows.flat().length;
+            const rowTiles = tiles.slice(start, start + count);
+
+            rows.push(
+              <div
+                key={rowIndex}
+                className={`flex justify-center gap-x-5 ${
+                  rowIndex % 2 === 1 ? "" : ""
+                }`}
+              >
+                {rowTiles.map((tile) => (
+                  <HexagonTile
+                  key={tile.id}
+                  onClick={() => handleTileClick(tile.id)}
+                  color={tile.id % 2 === 0 ? "#2DD4BF" : "#A78BFA"}
+                >
+                  {renderTileContent(tile)}
+                </HexagonTile>
+                ))}
+              </div>
+            );
+            return rows;
+          }, [])}
         </div>
 
         {/* Power-ups */}
-        {gamePhase === "recall" && (
+        {phase === "recall" && (
           <Card>
             <h3 className="text-lg font-medium mb-3">Power-ups</h3>
             <div className="grid grid-cols-4 gap-2">
@@ -164,4 +182,4 @@ export default function GamePage() {
       </div>
     </Layout>
   );
-};
+}
