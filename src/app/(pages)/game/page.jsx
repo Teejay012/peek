@@ -128,7 +128,7 @@ export default function GamePage() {
         </div>
 
         {/* Honeycomb grid */}
-        <div className="flex flex-col items-center gap-y-1">
+        <div className="flex flex-col items-center gap-y">
           {pattern.reduce((rows, count, rowIndex) => {
             const start = rows.flat().length;
             const rowTiles = tiles.slice(start, start + count);
@@ -136,7 +136,7 @@ export default function GamePage() {
             rows.push(
               <div
                 key={rowIndex}
-                className={`flex justify-center gap-x-5 ${
+                className={`flex justify-center gap-x-2 ${
                   rowIndex % 2 === 1 ? "" : ""
                 }`}
               >
